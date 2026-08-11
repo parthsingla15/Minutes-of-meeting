@@ -1,0 +1,14 @@
+{
+  "name": "meeting-minutes-desktop",
+  "version": "0.1.0",
+  "description": "Bot-free meeting audio capture desktop app",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^31.0.0"
+  }
+}
