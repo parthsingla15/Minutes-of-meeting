@@ -4,6 +4,7 @@ from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
 from sqlalchemy.orm import Session
 
 from app.config import UPLOAD_DIR
+from app.services.audio_convert import convert_to_wav
 from app.services.transcribe import transcribe_audio
 from app.services.diarize import diarize_audio, merge_transcript_with_speakers
 from app.services.summarize import summarize_transcript
@@ -23,21 +24,28 @@ async def process_meeting(file: UploadFile = File(...), db: Session = Depends(ge
         raise HTTPException(400, f"Unsupported file type: {ext}")
 
     file_id = str(uuid.uuid4())
-    audio_path = os.path.join(UPLOAD_DIR, f"{file_id}{ext}")
+    raw_path = os.path.join(UPLOAD_DIR, f"{file_id}{ext}")
 
-    with open(audio_path, "wb") as f:
+    with open(raw_path, "wb") as f:
         f.write(await file.read())
 
+    wav_path = None
     try:
-        transcript_segments = transcribe_audio(audio_path)
-        speaker_turns = diarize_audio(audio_path)
+        # Normalize to 16kHz mono WAV so torchaudio/soundfile (pyannote) can read it,
+        # regardless of what format the recorder produced (webm, mp4, etc.)
+        wav_path = convert_to_wav(raw_path)
+
+        transcript_segments = transcribe_audio(wav_path)
+        speaker_turns = diarize_audio(wav_path)
         merged = merge_transcript_with_speakers(transcript_segments, speaker_turns)
         minutes = summarize_transcript(merged)
     except Exception as e:
         raise HTTPException(500, f"Pipeline failed: {e}")
     finally:
-        if os.path.exists(audio_path):
-            os.remove(audio_path)
+        if os.path.exists(raw_path):
+            os.remove(raw_path)
+        if wav_path and os.path.exists(wav_path):
+            os.remove(wav_path)
 
     meeting = Meeting(
         title=minutes["title"],

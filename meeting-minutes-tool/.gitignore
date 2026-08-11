@@ -1,9 +1,47 @@
+# Python
 __pycache__/
 *.pyc
+*.pyo
 venv/
-.env/
+env/
+*.egg-info/
+.pytest_cache/
+
+# Environment secrets — never commit real keys
 .env
+.env.local
+.env.*.local
+
+# Uploaded/generated audio (temp files, deleted after processing but just in case)
 uploads/
-node_modules/
 *.webm
+*.wav
+*.mp3
+*.m4a
+
+# Node / Electron
+node_modules/
+electron-app/dist/
+electron-app/out/
+electron-app/build/
+
+# Next.js
+dashboard/.next/
+dashboard/out/
+dashboard/node_modules/
+
+# Vercel
+.vercel/
+
+# Hugging Face / model caches (large, machine-specific — don't commit)
+.cache/
+
+# IDE / OS
+.vscode/
+.idea/
 .DS_Store
+Thumbs.db
+
+# Logs
+*.log
+error_log.txt
