@@ -20,17 +20,6 @@ function createWindow() {
   mainWindow.loadFile(path.join(__dirname, 'renderer', 'index.html'));
 }
 
-// Chromium requires this handler to be set for desktopCapturer + system
-// audio loopback capture to work (Windows/Linux). On macOS, Chromium
-// cannot capture system audio this way — you need a virtual audio device
-// like BlackHole routed as a normal input, or ScreenCaptureKit (native,
-// not wired up in this scaffold).
-session.defaultSession.setDisplayMediaRequestHandler((request, callback) => {
-  desktopCapturer.getSources({ types: ['screen'] }).then((sources) => {
-    callback({ video: sources[0], audio: 'loopback' });
-  });
-});
-
 // Renderer asks main process for a temp path to write the recorded blob to.
 ipcMain.handle('get-recording-path', () => {
   const dir = path.join(os.tmpdir(), 'meeting-minutes-tool');
@@ -43,7 +32,21 @@ ipcMain.handle('save-recording', (_event, filePath, buffer) => {
   return filePath;
 });
 
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+  // Chromium requires this handler to be set for desktopCapturer + system
+  // audio loopback capture to work (Windows/Linux). On macOS, Chromium
+  // cannot capture system audio this way — you need a virtual audio device
+  // like BlackHole routed as a normal input, or ScreenCaptureKit (native,
+  // not wired up in this scaffold).
+  // Must be registered AFTER app is ready — session isn't available before that.
+  session.defaultSession.setDisplayMediaRequestHandler((request, callback) => {
+    desktopCapturer.getSources({ types: ['screen'] }).then((sources) => {
+      callback({ video: sources[0], audio: 'loopback' });
+    });
+  });
+
+  createWindow();
+});
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
