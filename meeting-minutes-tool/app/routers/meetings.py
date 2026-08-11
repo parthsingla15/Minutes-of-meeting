@@ -1,6 +1,6 @@
 import os
 import uuid
-from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
+from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, BackgroundTasks
 from sqlalchemy.orm import Session
 
 from app.config import UPLOAD_DIR
@@ -8,8 +8,8 @@ from app.services.audio_convert import convert_to_wav
 from app.services.transcribe import transcribe_audio
 from app.services.diarize import diarize_audio, merge_transcript_with_speakers
 from app.services.summarize import summarize_transcript
-from app.models.schemas import ProcessMeetingResponse, MeetingListItem, MeetingDetail
-from app.db.database import get_db
+from app.models.schemas import ProcessMeetingAccepted, MeetingListItem, MeetingDetail
+from app.db.database import get_db, SessionLocal
 from app.db.db_models import Meeting
 
 router = APIRouter(prefix="/meetings", tags=["meetings"])
@@ -17,8 +17,49 @@ router = APIRouter(prefix="/meetings", tags=["meetings"])
 ALLOWED_EXTENSIONS = {".mp3", ".wav", ".m4a", ".mp4", ".webm"}
 
 
-@router.post("/process", response_model=ProcessMeetingResponse)
-async def process_meeting(file: UploadFile = File(...), db: Session = Depends(get_db)):
+def run_pipeline(meeting_id: str, raw_path: str):
+    """
+    Runs in the background, after the HTTP response has already been sent.
+    Uses its own DB session since the request-scoped one is gone by now.
+    """
+    db = SessionLocal()
+    wav_path = None
+    try:
+        wav_path = convert_to_wav(raw_path)
+        transcript_segments = transcribe_audio(wav_path)
+        speaker_turns = diarize_audio(wav_path)
+        merged = merge_transcript_with_speakers(transcript_segments, speaker_turns)
+        minutes = summarize_transcript(merged)
+
+        meeting = db.query(Meeting).filter(Meeting.id == meeting_id).first()
+        meeting.status = "done"
+        meeting.title = minutes["title"]
+        meeting.summary = minutes["summary"]
+        meeting.key_points = minutes["key_points"]
+        meeting.decisions = minutes["decisions"]
+        meeting.action_items = minutes["action_items"]
+        meeting.transcript = merged
+        db.commit()
+    except Exception as e:
+        meeting = db.query(Meeting).filter(Meeting.id == meeting_id).first()
+        if meeting:
+            meeting.status = "failed"
+            meeting.error_message = str(e)
+            db.commit()
+    finally:
+        db.close()
+        if os.path.exists(raw_path):
+            os.remove(raw_path)
+        if wav_path and os.path.exists(wav_path):
+            os.remove(wav_path)
+
+
+@router.post("/process", response_model=ProcessMeetingAccepted, status_code=202)
+async def process_meeting(
+    background_tasks: BackgroundTasks,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+):
     ext = os.path.splitext(file.filename)[1].lower()
     if ext not in ALLOWED_EXTENSIONS:
         raise HTTPException(400, f"Unsupported file type: {ext}")
@@ -29,37 +70,16 @@ async def process_meeting(file: UploadFile = File(...), db: Session = Depends(ge
     with open(raw_path, "wb") as f:
         f.write(await file.read())
 
-    wav_path = None
-    try:
-        # Normalize to 16kHz mono WAV so torchaudio/soundfile (pyannote) can read it,
-        # regardless of what format the recorder produced (webm, mp4, etc.)
-        wav_path = convert_to_wav(raw_path)
-
-        transcript_segments = transcribe_audio(wav_path)
-        speaker_turns = diarize_audio(wav_path)
-        merged = merge_transcript_with_speakers(transcript_segments, speaker_turns)
-        minutes = summarize_transcript(merged)
-    except Exception as e:
-        raise HTTPException(500, f"Pipeline failed: {e}")
-    finally:
-        if os.path.exists(raw_path):
-            os.remove(raw_path)
-        if wav_path and os.path.exists(wav_path):
-            os.remove(wav_path)
-
-    meeting = Meeting(
-        title=minutes["title"],
-        summary=minutes["summary"],
-        key_points=minutes["key_points"],
-        decisions=minutes["decisions"],
-        action_items=minutes["action_items"],
-        transcript=merged,
-    )
+    meeting = Meeting(status="processing")
     db.add(meeting)
     db.commit()
     db.refresh(meeting)
 
-    return ProcessMeetingResponse(id=meeting.id, minutes=minutes, transcript=merged)
+    # Returns immediately — actual pipeline runs after response is sent,
+    # avoiding Railway's proxy request timeout entirely.
+    background_tasks.add_task(run_pipeline, str(meeting.id), raw_path)
+
+    return ProcessMeetingAccepted(id=meeting.id, status="processing")
 
 
 @router.get("", response_model=list[MeetingListItem])

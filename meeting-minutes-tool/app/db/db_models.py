@@ -11,10 +11,12 @@ class Meeting(Base):
     __tablename__ = "meetings"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    title = Column(String, nullable=False)
-    summary = Column(Text, nullable=False)
-    key_points = Column(JSON, nullable=False, default=list)
-    decisions = Column(JSON, nullable=False, default=list)
-    action_items = Column(JSON, nullable=False, default=list)
-    transcript = Column(JSON, nullable=False, default=list)
+    status = Column(String, nullable=False, default="processing")  # processing | done | failed
+    title = Column(String, nullable=True)
+    summary = Column(Text, nullable=True)
+    key_points = Column(JSON, nullable=True, default=list)
+    decisions = Column(JSON, nullable=True, default=list)
+    action_items = Column(JSON, nullable=True, default=list)
+    transcript = Column(JSON, nullable=True, default=list)
+    error_message = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)

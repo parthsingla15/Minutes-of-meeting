@@ -9,24 +9,16 @@ class ActionItem(BaseModel):
     due: str | None = None
 
 
-class MeetingMinutes(BaseModel):
-    title: str
-    summary: str
-    key_points: list[str]
-    decisions: list[str]
-    action_items: list[ActionItem]
-
-
-class ProcessMeetingResponse(BaseModel):
+class ProcessMeetingAccepted(BaseModel):
     id: UUID
-    minutes: MeetingMinutes
-    transcript: list[dict]
+    status: str
 
 
 class MeetingListItem(BaseModel):
     id: UUID
-    title: str
-    summary: str
+    status: str
+    title: str | None = None
+    summary: str | None = None
     created_at: datetime
 
     class Config:
@@ -35,12 +27,14 @@ class MeetingListItem(BaseModel):
 
 class MeetingDetail(BaseModel):
     id: UUID
-    title: str
-    summary: str
-    key_points: list[str]
-    decisions: list[str]
-    action_items: list[ActionItem]
-    transcript: list[dict]
+    status: str
+    title: str | None = None
+    summary: str | None = None
+    key_points: list[str] | None = None
+    decisions: list[str] | None = None
+    action_items: list[ActionItem] | None = None
+    transcript: list[dict] | None = None
+    error_message: str | None = None
     created_at: datetime
 
     class Config:
