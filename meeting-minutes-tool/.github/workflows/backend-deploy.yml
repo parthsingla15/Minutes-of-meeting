@@ -1,0 +1,37 @@
+name: Deploy Backend to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy to EC2
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            # Navigate to the git repository
+            cd /home/ubuntu/Minutes-of-meeting
+            
+            # Pull the latest changes from the main branch
+            git pull origin main
+            
+            # Navigate into the backend directory
+            cd meeting-minutes-tool
+            
+            # Activate the virtual environment
+            source venv/bin/activate
+            
+            # Install any new dependencies
+            pip install -r requirements.txt
+            
+            # Restart the backend service using systemctl
+            sudo systemctl restart meeting-minutes
