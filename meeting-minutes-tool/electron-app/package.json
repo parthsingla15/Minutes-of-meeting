@@ -4,11 +4,35 @@
   "description": "Bot-free meeting audio capture desktop app",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "build": "electron-builder build --win",
+    "publish": "electron-builder build --win --publish always"
   },
   "author": "",
   "license": "MIT",
+  "build": {
+    "appId": "com.meetingminutes.desktop",
+    "productName": "Meeting Minutes Tool",
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "parthsingla15",
+        "repo": "Minutes-of-meeting"
+      }
+    ]
+  },
   "devDependencies": {
-    "electron": "^31.0.0"
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.9"
   }
 }
