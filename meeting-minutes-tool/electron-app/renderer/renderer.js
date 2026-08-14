@@ -4,6 +4,7 @@
 // the actual transcribe/diarize/summarize pipeline runs in the background.
 
 const startBtn = document.getElementById('startBtn');
+const pauseBtn = document.getElementById('pauseBtn');
 const stopBtn = document.getElementById('stopBtn');
 const statusEl = document.getElementById('status');
 const backendUrlInput = document.getElementById('backendUrl');
@@ -45,6 +46,7 @@ async function startRecording() {
     mediaRecorder.start();
     setStatus('Recording...');
     startBtn.style.display = 'none';
+    pauseBtn.style.display = 'block';
     stopBtn.style.display = 'block';
   } catch (err) {
     console.error(err);
@@ -56,6 +58,7 @@ function stopRecording() {
   if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
   systemStream?.getTracks().forEach((t) => t.stop());
   micStream?.getTracks().forEach((t) => t.stop());
+  pauseBtn.style.display = 'none';
   stopBtn.style.display = 'none';
   startBtn.style.display = 'block';
 }
@@ -121,5 +124,20 @@ async function pollForResult(backendUrl, id, attempt = 0) {
   }
 }
 
+function togglePause() {
+  if (!mediaRecorder) return;
+
+  if (mediaRecorder.state === 'recording') {
+    mediaRecorder.pause();
+    setStatus('Paused');
+    pauseBtn.textContent = 'Resume';
+  } else if (mediaRecorder.state === 'paused') {
+    mediaRecorder.resume();
+    setStatus('Recording...');
+    pauseBtn.textContent = 'Pause';
+  }
+}
+
 startBtn.addEventListener('click', startRecording);
+pauseBtn.addEventListener('click', togglePause);
 stopBtn.addEventListener('click', stopRecording);
