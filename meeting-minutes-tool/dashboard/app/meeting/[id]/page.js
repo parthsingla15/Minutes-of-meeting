@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { fetchMeeting } from "../../../lib/api";
+import DownloadButton from "../../../components/DownloadButton";
 
 export default async function MeetingDetailPage({ params }) {
   const meeting = await fetchMeeting(params.id);
@@ -10,10 +11,15 @@ export default async function MeetingDetailPage({ params }) {
         ← Back to meetings
       </Link>
 
-      <h1 style={{ fontSize: 22, marginTop: 12 }}>{meeting.title}</h1>
-      <p style={{ fontSize: 12, color: "#666" }}>
-        {new Date(meeting.created_at).toLocaleString()}
-      </p>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginTop: 12 }}>
+        <div>
+          <h1 style={{ fontSize: 22, margin: 0 }}>{meeting.title}</h1>
+          <p style={{ fontSize: 12, color: "#666", marginTop: 4 }}>
+            {new Date(meeting.created_at).toLocaleString()}
+          </p>
+        </div>
+        <DownloadButton meeting={meeting} />
+      </div>
 
       <Section title="Summary">
         <p style={{ color: "#ccc", lineHeight: 1.5 }}>{meeting.summary}</p>
