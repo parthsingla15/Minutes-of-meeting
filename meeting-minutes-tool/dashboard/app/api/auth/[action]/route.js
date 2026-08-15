@@ -7,7 +7,7 @@ export async function POST(request, { params }) {
   }
 
   const body = await request.json();
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://13.60.66.170:8000";
 
   try {
     const res = await fetch(`${apiUrl}/auth/${action}`, {

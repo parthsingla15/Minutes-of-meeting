@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 export async function DELETE(request, { params }) {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://13.60.66.170:8000";
   const { id } = params;
 
   try {
