@@ -14,7 +14,7 @@ _inference = None
 def get_inference():
     global _model, _inference
     if _model is None:
-        _model = Model.from_pretrained("pyannote/embedding", use_auth_token=HF_TOKEN)
+        _model = Model.from_pretrained("pyannote/wespeaker-voxceleb-resnet34-LM", use_auth_token=HF_TOKEN)
         if DEVICE == "cuda":
             import torch
             _model.to(torch.device("cuda"))
