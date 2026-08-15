@@ -55,45 +55,68 @@ export default function LoginPage() {
     >
       <Background3D />
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
         style={{
           width: "100%",
-          maxWidth: 400,
-          background: "rgba(10, 12, 16, 0.6)",
+          maxWidth: 900,
+          minHeight: 500,
+          background: "rgba(10, 12, 16, 0.4)",
           backdropFilter: "blur(24px)",
           WebkitBackdropFilter: "blur(24px)",
           border: "1px solid rgba(255, 255, 255, 0.08)",
           borderRadius: 24,
-          padding: 40,
           boxShadow: "0 30px 60px -12px rgba(0, 0, 0, 0.8)",
           position: "relative",
           zIndex: 10,
+          display: "flex",
+          overflow: "hidden",
         }}
       >
-        <div style={{ textAlign: "center", marginBottom: 32 }}>
+        {/* Side Animation Panel */}
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", background: "rgba(255, 255, 255, 0.02)", borderRight: "1px solid rgba(255,255,255,0.05)", padding: 40, position: "relative", overflow: "hidden" }}>
           <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+            animate={{ 
+              rotate: [0, 360],
+              scale: [1, 1.1, 1],
+            }}
+            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
             style={{
-              width: 48,
-              height: 48,
-              background: "linear-gradient(135deg, #4f8cff 0%, #a44fff 100%)",
-              borderRadius: 12,
-              margin: "0 auto 16px",
+              position: "absolute",
+              width: "150%",
+              height: "150%",
+              background: "radial-gradient(circle, rgba(79,140,255,0.15) 0%, transparent 60%)",
+              zIndex: 0
             }}
           />
-          <h1 style={{ fontSize: 24, margin: "0 0 8px 0", fontWeight: 700 }}>
-            {isLogin ? "Welcome back" : "Create an account"}
-          </h1>
-          <p style={{ color: "#9aa0a6", fontSize: 14, margin: 0 }}>
-            {isLogin
-              ? "Enter your credentials to access your meetings."
-              : "Sign up to start organizing your minutes."}
-          </p>
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.5 }}
+            style={{ zIndex: 1, textAlign: "center" }}
+          >
+            <h1 style={{ fontSize: 36, fontWeight: 800, margin: "0 0 16px 0", background: "linear-gradient(135deg, #fff 0%, #a44fff 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+              Meeting Tracker
+            </h1>
+            <p style={{ color: "#9aa0a6", fontSize: 15, lineHeight: 1.6, maxWidth: 300, margin: "0 auto" }}>
+              Your intelligent assistant for transcribing, diarizing, and summarizing team meetings with absolute privacy.
+            </p>
+          </motion.div>
         </div>
+
+        {/* Login Form Panel */}
+        <div style={{ flex: 1, padding: "48px 40px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+          <div style={{ textAlign: "center", marginBottom: 32 }}>
+            <h2 style={{ fontSize: 24, margin: "0 0 8px 0", fontWeight: 700 }}>
+              {isLogin ? "Welcome back" : "Create an account"}
+            </h2>
+            <p style={{ color: "#9aa0a6", fontSize: 14, margin: 0 }}>
+              {isLogin
+                ? "Enter your credentials to access your meetings."
+                : "Sign up to start organizing your minutes."}
+            </p>
+          </div>
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <AnimatePresence mode="wait">
@@ -185,21 +208,22 @@ export default function LoginPage() {
           </motion.button>
         </form>
 
-        <div style={{ marginTop: 24, textAlign: "center", fontSize: 13, color: "#9aa0a6" }}>
-          {isLogin ? "Don't have an account? " : "Already have an account? "}
-          <span
-            onClick={() => {
-              setIsLogin(!isLogin);
-              setError("");
-            }}
-            style={{
-              color: "#4f8cff",
-              cursor: "pointer",
-              fontWeight: 500,
-            }}
-          >
-            {isLogin ? "Sign up" : "Log in"}
-          </span>
+          <div style={{ marginTop: 24, textAlign: "center", fontSize: 13, color: "#9aa0a6" }}>
+            {isLogin ? "Don't have an account? " : "Already have an account? "}
+            <span
+              onClick={() => {
+                setIsLogin(!isLogin);
+                setError("");
+              }}
+              style={{
+                color: "#4f8cff",
+                cursor: "pointer",
+                fontWeight: 500,
+              }}
+            >
+              {isLogin ? "Sign up" : "Log in"}
+            </span>
+          </div>
         </div>
       </motion.div>
     </main>
