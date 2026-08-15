@@ -3,11 +3,47 @@
 // backend (which responds immediately), then polls for completion since
 // the actual transcribe/diarize/summarize pipeline runs in the background.
 
-const startBtn = document.getElementById('startBtn');
-const pauseBtn = document.getElementById('pauseBtn');
-const stopBtn = document.getElementById('stopBtn');
-const statusEl = document.getElementById('status');
+const recordBtn = document.getElementById('record-btn');
+const pauseBtn = document.getElementById('pause-btn');
+const statusText = document.getElementById('status-text');
+const timerDisplay = document.getElementById('timer');
+const micSelect = document.getElementById('mic-select');
 const backendUrlInput = document.getElementById('backendUrl');
+
+// Auth elements
+const loginSection = document.getElementById('login-section');
+const recorderSection = document.getElementById('recorder-section');
+const loginBtn = document.getElementById('login-btn');
+const emailInput = document.getElementById('email-input');
+const passwordInput = document.getElementById('password-input');
+const errorMessage = document.getElementById('error-message');
+
+let authToken = localStorage.getItem("jwt_token") || null;
+
+// Initialize app state
+if (authToken) {
+  loginSection.style.display = 'none';
+  recorderSection.style.display = 'flex';
+}
+
+loginBtn.addEventListener('click', async () => {
+  try {
+    const backendUrl = backendUrlInput.value.trim().replace(/\/$/, '');
+    const res = await fetch(`${backendUrl}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: emailInput.value, password: passwordInput.value })
+    });
+    if (!res.ok) throw new Error('Login failed');
+    const data = await res.json();
+    authToken = data.access_token;
+    localStorage.setItem("jwt_token", authToken);
+    loginSection.style.display = 'none';
+    recorderSection.style.display = 'flex';
+  } catch (err) {
+    errorMessage.textContent = err.message;
+  }
+});
 
 let mediaRecorder;
 let recordedChunks = [];
@@ -16,7 +52,7 @@ let micStream;
 let mixedStream;
 
 function setStatus(text) {
-  statusEl.textContent = text;
+  statusText.textContent = text;
 }
 
 async function startRecording() {
@@ -45,9 +81,6 @@ async function startRecording() {
 
     mediaRecorder.start();
     setStatus('Recording...');
-    startBtn.style.display = 'none';
-    pauseBtn.style.display = 'block';
-    stopBtn.style.display = 'block';
   } catch (err) {
     console.error(err);
     setStatus(`Error: ${err.message}`);
@@ -58,9 +91,6 @@ function stopRecording() {
   if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
   systemStream?.getTracks().forEach((t) => t.stop());
   micStream?.getTracks().forEach((t) => t.stop());
-  pauseBtn.style.display = 'none';
-  stopBtn.style.display = 'none';
-  startBtn.style.display = 'block';
 }
 
 async function handleRecordingStop() {
@@ -78,10 +108,16 @@ async function handleRecordingStop() {
 async function uploadRecording(blob) {
   const backendUrl = backendUrlInput.value.trim().replace(/\/$/, '');
   const formData = new FormData();
-  formData.append('file', blob, 'recording.webm');
+  formData.append('file', blob, 'meeting.webm');
 
   try {
-    const res = await fetch(`${backendUrl}/meetings/process`, { method: 'POST', body: formData });
+    const res = await fetch(`${backendUrl}/meetings/process`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: formData
+    });
 
     if (!res.ok) {
       const errText = await res.text();

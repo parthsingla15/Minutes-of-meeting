@@ -5,8 +5,12 @@ export async function DELETE(request, { params }) {
   const { id } = params;
 
   try {
+    const token = request.cookies.get("token")?.value;
     const res = await fetch(`${apiUrl}/meetings/${id}`, {
       method: "DELETE",
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` })
+      }
     });
 
     if (!res.ok) {

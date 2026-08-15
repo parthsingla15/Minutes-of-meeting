@@ -12,13 +12,14 @@ from app.services.embeddings import extract_speaker_embeddings, match_speaker
 from app.models.schemas import ProcessMeetingAccepted, MeetingListItem, MeetingDetail
 from app.db.database import get_db, SessionLocal
 from app.db.db_models import Meeting, SpeakerProfile
+from app.auth_utils import get_current_user_id
 
 router = APIRouter(prefix="/meetings", tags=["meetings"])
 
 ALLOWED_EXTENSIONS = {".mp3", ".wav", ".m4a", ".mp4", ".webm"}
 
 
-def run_pipeline(meeting_id: str, raw_path: str):
+def run_pipeline(meeting_id: str, raw_path: str, user_id: str = None):
     """
     Runs in the background, after the HTTP response has already been sent.
     Uses its own DB session since the request-scoped one is gone by now.
@@ -33,7 +34,7 @@ def run_pipeline(meeting_id: str, raw_path: str):
         # 1. Extract embeddings for all speakers in this meeting
         meeting_embeddings = extract_speaker_embeddings(wav_path, speaker_turns)
         
-        # 2. Fetch known profiles from DB
+        # 2. Fetch known profiles from DB (GLOBAL)
         known_profiles = []
         for prof in db.query(SpeakerProfile).all():
             known_profiles.append((prof.name, prof.embedding))
@@ -87,6 +88,7 @@ async def process_meeting(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
+    user_id: str = Depends(get_current_user_id)
 ):
     ext = os.path.splitext(file.filename)[1].lower()
     if ext not in ALLOWED_EXTENSIONS:
@@ -98,26 +100,26 @@ async def process_meeting(
     with open(raw_path, "wb") as f:
         f.write(await file.read())
 
-    meeting = Meeting(status="processing")
+    meeting = Meeting(status="processing", user_id=user_id)
     db.add(meeting)
     db.commit()
     db.refresh(meeting)
 
     # Returns immediately — actual pipeline runs after response is sent,
     # avoiding Railway's proxy request timeout entirely.
-    background_tasks.add_task(run_pipeline, str(meeting.id), raw_path)
+    background_tasks.add_task(run_pipeline, str(meeting.id), raw_path, user_id)
 
     return ProcessMeetingAccepted(id=meeting.id, status="processing")
 
 
 @router.get("", response_model=list[MeetingListItem])
-def list_meetings(db: Session = Depends(get_db)):
-    return db.query(Meeting).order_by(Meeting.created_at.desc()).all()
+def list_meetings(db: Session = Depends(get_db), user_id: str = Depends(get_current_user_id)):
+    return db.query(Meeting).filter(Meeting.user_id == user_id).order_by(Meeting.created_at.desc()).all()
 
 
 @router.get("/{meeting_id}", response_model=MeetingDetail)
-def get_meeting(meeting_id: str, db: Session = Depends(get_db)):
-    meeting = db.query(Meeting).filter(Meeting.id == meeting_id).first()
+def get_meeting(meeting_id: str, db: Session = Depends(get_db), user_id: str = Depends(get_current_user_id)):
+    meeting = db.query(Meeting).filter(Meeting.id == meeting_id, Meeting.user_id == user_id).first()
     if not meeting:
         raise HTTPException(404, "Meeting not found")
     return meeting
@@ -129,8 +131,8 @@ class LabelSpeakerRequest(BaseModel):
     real_name: str
 
 @router.post("/{meeting_id}/label-speaker")
-def label_speaker(meeting_id: str, req: LabelSpeakerRequest, db: Session = Depends(get_db)):
-    meeting = db.query(Meeting).filter(Meeting.id == meeting_id).first()
+def label_speaker(meeting_id: str, req: LabelSpeakerRequest, db: Session = Depends(get_db), user_id: str = Depends(get_current_user_id)):
+    meeting = db.query(Meeting).filter(Meeting.id == meeting_id, Meeting.user_id == user_id).first()
     if not meeting:
         raise HTTPException(404, "Meeting not found")
         
@@ -140,7 +142,7 @@ def label_speaker(meeting_id: str, req: LabelSpeakerRequest, db: Session = Depen
     # Get the embedding that was temporarily stored
     embedding = meeting.speaker_embeddings[req.old_speaker_name]
     
-    # Check if profile already exists
+    # Check if profile already exists globally
     profile = db.query(SpeakerProfile).filter(SpeakerProfile.name == req.real_name).first()
     if profile:
         profile.embedding = embedding # Update with the latest embedding
@@ -152,8 +154,8 @@ def label_speaker(meeting_id: str, req: LabelSpeakerRequest, db: Session = Depen
     return {"message": f"Successfully linked {req.old_speaker_name} to {req.real_name}"}
 
 @router.delete("/{meeting_id}")
-def delete_meeting(meeting_id: str, db: Session = Depends(get_db)):
-    meeting = db.query(Meeting).filter(Meeting.id == meeting_id).first()
+def delete_meeting(meeting_id: str, db: Session = Depends(get_db), user_id: str = Depends(get_current_user_id)):
+    meeting = db.query(Meeting).filter(Meeting.id == meeting_id, Meeting.user_id == user_id).first()
     if not meeting:
         raise HTTPException(404, "Meeting not found")
     db.delete(meeting)

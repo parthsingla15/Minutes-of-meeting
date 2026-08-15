@@ -25,31 +25,49 @@
     #startBtn { background: #4f8cff; color: white; }
     #stopBtn { background: #ff4f4f; color: white; display: none; }
     #status { margin-top: 16px; font-size: 13px; color: #9aa0a6; }
-    #backendUrl {
+    input {
       width: 100%;
       box-sizing: border-box;
       padding: 8px;
-      margin-top: 16px;
+      margin-top: 8px;
       background: #1c1f26;
       border: 1px solid #333;
       border-radius: 6px;
       color: #e6e6e6;
     }
     label { font-size: 12px; color: #9aa0a6; }
+    
+    #login-section {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    #loginBtn { background: #4f8cff; color: white; }
+    #error-message { color: #ff4f4f; font-size: 13px; }
   </style>
 </head>
 <body>
   <h1>Meeting Minutes</h1>
-  <p class="sub">Bot-free system audio capture</p>
+  
+  <div id="login-section">
+    <p class="sub">Please log in to your account.</p>
+    <label>Email</label>
+    <input id="email-input" type="email" />
+    <label>Password</label>
+    <input id="password-input" type="password" />
+    <button id="loginBtn">Login</button>
+    <div id="error-message"></div>
+    <label style="margin-top:20px">Backend URL</label>
+    <input id="backendUrl" type="text" value="http://13.60.66.170:8000" />
+  </div>
 
-  <label for="backendUrl">Backend URL</label>
-  <input id="backendUrl" type="text" value="http://13.60.66.170:8000" />
-
-  <button id="startBtn">Start Recording</button>
-  <button id="pauseBtn" style="display: none; background: #f0ad4e; color: white;">Pause</button>
-  <button id="stopBtn">Stop &amp; Process</button>
-
-  <div id="status">Idle</div>
+  <div id="recorder-section" style="display: none;">
+    <p class="sub">Bot-free system audio capture</p>
+    <button id="startBtn">Start Recording</button>
+    <button id="pauseBtn" style="display: none; background: #f0ad4e; color: white;">Pause</button>
+    <button id="stopBtn">Stop &amp; Process</button>
+    <div id="status">Idle</div>
+  </div>
 
   <script src="renderer.js"></script>
 </body>

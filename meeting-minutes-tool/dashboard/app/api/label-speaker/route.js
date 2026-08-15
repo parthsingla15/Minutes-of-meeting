@@ -4,11 +4,13 @@ export async function POST(request) {
   try {
     const body = await request.json();
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    const token = request.cookies.get("token")?.value;
 
     const res = await fetch(`${apiUrl}/meetings/${body.meeting_id}/label-speaker`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` })
       },
       body: JSON.stringify({
         old_speaker_name: body.old_speaker_name,
