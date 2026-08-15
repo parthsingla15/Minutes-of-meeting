@@ -80,6 +80,9 @@ async function startRecording() {
 
     mediaRecorder.start();
     setStatus('Recording...');
+    startBtn.style.display = 'none';
+    pauseBtn.style.display = 'block';
+    stopBtn.style.display = 'block';
   } catch (err) {
     console.error(err);
     setStatus(`Error: ${err.message}`);
@@ -90,6 +93,10 @@ function stopRecording() {
   if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
   systemStream?.getTracks().forEach((t) => t.stop());
   micStream?.getTracks().forEach((t) => t.stop());
+  
+  startBtn.style.display = 'block';
+  pauseBtn.style.display = 'none';
+  stopBtn.style.display = 'none';
 }
 
 async function handleRecordingStop() {
