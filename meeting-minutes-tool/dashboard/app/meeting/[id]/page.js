@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { fetchMeeting } from "../../../lib/api";
 import DownloadButton from "../../../components/DownloadButton";
+import SpeakerLabel from "../../../components/SpeakerLabel";
 
 export default async function MeetingDetailPage({ params }) {
   const meeting = await fetchMeeting(params.id);
@@ -64,7 +65,7 @@ export default async function MeetingDetailPage({ params }) {
         <div style={{ display: "flex", flexDirection: "column", gap: 6, fontSize: 13 }}>
           {meeting.transcript.map((seg, i) => (
             <div key={i}>
-              <span style={{ color: "#4f8cff" }}>{seg.speaker}</span>{" "}
+              <SpeakerLabel meetingId={meeting.id} initialName={seg.speaker} />{" "}
               <span style={{ color: "#666" }}>[{seg.start}s]</span>{" "}
               <span style={{ color: "#ccc" }}>{seg.text}</span>
             </div>
