@@ -150,3 +150,12 @@ def label_speaker(meeting_id: str, req: LabelSpeakerRequest, db: Session = Depen
         
     db.commit()
     return {"message": f"Successfully linked {req.old_speaker_name} to {req.real_name}"}
+
+@router.delete("/{meeting_id}")
+def delete_meeting(meeting_id: str, db: Session = Depends(get_db)):
+    meeting = db.query(Meeting).filter(Meeting.id == meeting_id).first()
+    if not meeting:
+        raise HTTPException(404, "Meeting not found")
+    db.delete(meeting)
+    db.commit()
+    return {"message": "Meeting deleted"}
