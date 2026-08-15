@@ -18,13 +18,13 @@ export default function SpeakerLabel({ meetingId, initialName }) {
     }
 
     setIsSaving(true);
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
     try {
-      const res = await fetch(`${apiUrl}/meetings/${meetingId}/label-speaker`, {
+      const res = await fetch(`/api/label-speaker`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          meeting_id: meetingId,
           old_speaker_name: currentName,
           real_name: name.trim(),
         }),
