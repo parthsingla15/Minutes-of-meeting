@@ -1,7 +1,6 @@
-import os
 from sqlalchemy import create_engine, text
+from app.config import DATABASE_URL
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/meeting_minutes")
 engine = create_engine(DATABASE_URL)
 
 def migrate():
