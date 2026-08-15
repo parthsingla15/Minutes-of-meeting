@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import Background3D from "../../components/Background3D";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -52,19 +53,23 @@ export default function LoginPage() {
         fontFamily: "system-ui, sans-serif",
       }}
     >
+      <Background3D />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
+        transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
         style={{
           width: "100%",
           maxWidth: 400,
-          background: "rgba(255, 255, 255, 0.03)",
-          backdropFilter: "blur(10px)",
-          border: "1px solid rgba(255, 255, 255, 0.1)",
-          borderRadius: 16,
+          background: "rgba(10, 12, 16, 0.6)",
+          backdropFilter: "blur(24px)",
+          WebkitBackdropFilter: "blur(24px)",
+          border: "1px solid rgba(255, 255, 255, 0.08)",
+          borderRadius: 24,
           padding: 40,
-          boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
+          boxShadow: "0 30px 60px -12px rgba(0, 0, 0, 0.8)",
+          position: "relative",
+          zIndex: 10,
         }}
       >
         <div style={{ textAlign: "center", marginBottom: 32 }}>
