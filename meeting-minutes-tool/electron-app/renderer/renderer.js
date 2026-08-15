@@ -147,7 +147,9 @@ async function pollForResult(backendUrl, id, attempt = 0) {
   }
 
   try {
-    const res = await fetch(`${backendUrl}/meetings/${id}`);
+    const res = await fetch(`${backendUrl}/meetings/${id}`, {
+      headers: { 'Authorization': `Bearer ${authToken}` }
+    });
     const data = await res.json();
 
     if (data.status === 'done') {
