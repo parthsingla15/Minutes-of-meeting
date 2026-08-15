@@ -3,17 +3,16 @@
 // backend (which responds immediately), then polls for completion since
 // the actual transcribe/diarize/summarize pipeline runs in the background.
 
-const recordBtn = document.getElementById('record-btn');
-const pauseBtn = document.getElementById('pause-btn');
-const statusText = document.getElementById('status-text');
-const timerDisplay = document.getElementById('timer');
-const micSelect = document.getElementById('mic-select');
+const startBtn = document.getElementById('startBtn');
+const pauseBtn = document.getElementById('pauseBtn');
+const statusText = document.getElementById('status');
 const backendUrlInput = document.getElementById('backendUrl');
+const stopBtn = document.getElementById('stopBtn');
 
 // Auth elements
 const loginSection = document.getElementById('login-section');
 const recorderSection = document.getElementById('recorder-section');
-const loginBtn = document.getElementById('login-btn');
+const loginBtn = document.getElementById('loginBtn');
 const emailInput = document.getElementById('email-input');
 const passwordInput = document.getElementById('password-input');
 const errorMessage = document.getElementById('error-message');
