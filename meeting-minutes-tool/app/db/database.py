@@ -19,3 +19,12 @@ def get_db():
 def init_db():
     from app.db import db_models  # noqa: F401 — ensures models are registered
     Base.metadata.create_all(bind=engine)
+    
+    # Simple migration: add speaker_embeddings column if missing
+    try:
+        from sqlalchemy import text
+        with engine.begin() as conn:
+            conn.execute(text("ALTER TABLE meetings ADD COLUMN speaker_embeddings JSON DEFAULT '{}';"))
+    except Exception:
+        # Column already exists or other error
+        pass
