@@ -51,6 +51,8 @@ export default function LoginPage() {
         color: "#e6e6e6",
         padding: "20px",
         fontFamily: "system-ui, sans-serif",
+        boxSizing: "border-box",
+        overflow: "hidden",
       }}
     >
       <Background3D />
@@ -71,11 +73,16 @@ export default function LoginPage() {
           position: "relative",
           zIndex: 10,
           display: "flex",
+          flexDirection: isLogin ? "row" : "row-reverse",
           overflow: "hidden",
         }}
+        layout
       >
         {/* Side Animation Panel */}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", background: "rgba(255, 255, 255, 0.02)", borderRight: "1px solid rgba(255,255,255,0.05)", padding: 40, position: "relative", overflow: "hidden" }}>
+        <motion.div 
+          layout
+          style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", background: "rgba(255, 255, 255, 0.02)", borderRight: isLogin ? "1px solid rgba(255,255,255,0.05)" : "none", borderLeft: !isLogin ? "1px solid rgba(255,255,255,0.05)" : "none", padding: 40, position: "relative", overflow: "hidden" }}
+        >
           <motion.div
             animate={{ 
               rotate: [0, 360],
@@ -103,19 +110,22 @@ export default function LoginPage() {
               Your intelligent assistant for transcribing, diarizing, and summarizing team meetings with absolute privacy.
             </p>
           </motion.div>
-        </div>
+        </motion.div>
 
         {/* Login Form Panel */}
-        <div style={{ flex: 1, padding: "48px 40px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+        <motion.div 
+          layout
+          style={{ flex: 1, padding: "48px 40px", display: "flex", flexDirection: "column", justifyContent: "center" }}
+        >
           <div style={{ textAlign: "center", marginBottom: 32 }}>
-            <h2 style={{ fontSize: 24, margin: "0 0 8px 0", fontWeight: 700 }}>
+            <motion.h2 layout style={{ fontSize: 24, margin: "0 0 8px 0", fontWeight: 700 }}>
               {isLogin ? "Welcome back" : "Create an account"}
-            </h2>
-            <p style={{ color: "#9aa0a6", fontSize: 14, margin: 0 }}>
+            </motion.h2>
+            <motion.p layout style={{ color: "#9aa0a6", fontSize: 14, margin: 0 }}>
               {isLogin
                 ? "Enter your credentials to access your meetings."
                 : "Sign up to start organizing your minutes."}
-            </p>
+            </motion.p>
           </div>
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -224,7 +234,7 @@ export default function LoginPage() {
               {isLogin ? "Sign up" : "Log in"}
             </span>
           </div>
-        </div>
+        </motion.div>
       </motion.div>
     </main>
   );
