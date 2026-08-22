@@ -126,6 +126,10 @@ async function uploadRecording(blob) {
     });
 
     if (!res.ok) {
+      if (res.status === 401) {
+        logout();
+        throw new Error('Token expired. Please log in again.');
+      }
       const errText = await res.text();
       throw new Error(`Backend error ${res.status}: ${errText}`);
     }
@@ -150,6 +154,12 @@ async function pollForResult(backendUrl, id, attempt = 0) {
     const res = await fetch(`${backendUrl}/meetings/${id}`, {
       headers: { 'Authorization': `Bearer ${authToken}` }
     });
+    
+    if (res.status === 401) {
+      logout();
+      return;
+    }
+    
     const data = await res.json();
 
     if (data.status === 'done') {
@@ -180,6 +190,14 @@ function togglePause() {
     setStatus('Recording...');
     pauseBtn.textContent = 'Pause';
   }
+}
+
+function logout() {
+  localStorage.removeItem("jwt_token");
+  authToken = null;
+  recorderSection.style.display = 'none';
+  loginSection.style.display = 'flex';
+  errorMessage.textContent = "Your session expired. Please log in again.";
 }
 
 startBtn.addEventListener('click', startRecording);
