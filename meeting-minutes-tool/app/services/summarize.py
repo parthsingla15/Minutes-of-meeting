@@ -36,7 +36,7 @@ def build_transcript_text(merged_segments: list[dict]) -> str:
     return "\n".join(lines)
 
 
-def summarize_transcript(merged_segments: list[dict], model: str = "llama-3.3-70b-versatile") -> dict:
+def summarize_transcript(merged_segments: list[dict], model: str = "llama3-70b-8192") -> dict:
     transcript_text = build_transcript_text(merged_segments)
     client = get_client()
 
