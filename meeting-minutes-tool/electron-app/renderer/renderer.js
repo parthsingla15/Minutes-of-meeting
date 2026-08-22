@@ -5,9 +5,20 @@
 
 const startBtn = document.getElementById('startBtn');
 const pauseBtn = document.getElementById('pauseBtn');
+const stopBtn = document.getElementById('stopBtn');
+const controlsRow = document.getElementById('controlsRow');
+const timerElement = document.getElementById('timer');
 const statusText = document.getElementById('status');
 const backendUrlInput = document.getElementById('backendUrl');
-const stopBtn = document.getElementById('stopBtn');
+
+let recordingSeconds = 0;
+let timerInterval = null;
+
+function formatTime(totalSeconds) {
+  const m = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+  const s = (totalSeconds % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+}
 
 // Auth elements
 const loginSection = document.getElementById('login-section');
@@ -81,8 +92,14 @@ async function startRecording() {
     mediaRecorder.start();
     setStatus('Recording...');
     startBtn.style.display = 'none';
-    pauseBtn.style.display = 'block';
-    stopBtn.style.display = 'block';
+    controlsRow.style.display = 'flex';
+    
+    recordingSeconds = 0;
+    timerElement.textContent = "00:00";
+    timerInterval = setInterval(() => {
+      recordingSeconds++;
+      timerElement.textContent = formatTime(recordingSeconds);
+    }, 1000);
   } catch (err) {
     console.error(err);
     setStatus(`Error: ${err.message}`);
@@ -94,9 +111,9 @@ function stopRecording() {
   systemStream?.getTracks().forEach((t) => t.stop());
   micStream?.getTracks().forEach((t) => t.stop());
   
+  clearInterval(timerInterval);
   startBtn.style.display = 'block';
-  pauseBtn.style.display = 'none';
-  stopBtn.style.display = 'none';
+  controlsRow.style.display = 'none';
 }
 
 async function handleRecordingStop() {
@@ -183,10 +200,15 @@ function togglePause() {
 
   if (mediaRecorder.state === 'recording') {
     mediaRecorder.pause();
+    clearInterval(timerInterval);
     setStatus('Paused');
     pauseBtn.textContent = 'Resume';
   } else if (mediaRecorder.state === 'paused') {
     mediaRecorder.resume();
+    timerInterval = setInterval(() => {
+      recordingSeconds++;
+      timerElement.textContent = formatTime(recordingSeconds);
+    }, 1000);
     setStatus('Recording...');
     pauseBtn.textContent = 'Pause';
   }
